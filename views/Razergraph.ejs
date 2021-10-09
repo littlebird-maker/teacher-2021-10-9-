@@ -1,0 +1,165 @@
+<!doctype html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport"
+          content="width=device-width, user-scalable=no, initial-scale=1.0, maximum-scale=1.0, minimum-scale=1.0">
+    <meta http-equiv="X-UA-Compatible" content="ie=edge">
+    <script type="text/javascript" src="/echarts.js"></script>
+    <script src="https://cdn.staticfile.org/jquery/1.10.2/jquery.min.js"></script>
+    <!--    vue-基础包导入-->
+    <script src="https://cdn.staticfile.org/vue/2.4.2/vue.min.js"></script>
+    <!--    复选框美化 -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/normalize/5.0.0/normalize.min.css">
+    <link rel="stylesheet" type="text/css" href="style-checkbox.css"/>
+
+    <title>时间轴/修改</title>
+    <style>
+        /*按钮美化*/
+        .butt {
+            margin: 10px;
+            float: right;
+            width: 100px;
+            height: 30px;
+            background-color: white;
+            color: black;
+            align-self: center;
+            border: 2px solid #555555;
+        }
+        .butt:hover {
+            background-color: #555555;
+            color: white;
+        }
+        /*弹窗*/
+        .mask{
+            z-index: 999;
+            width: 100%;
+            height: 100%;
+            position: fixed;
+            left: 0;
+            top: 0;
+            background: rgba(0,0,0,0.6);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+        .box{
+            background: #fff;
+            padding: 40px;
+            border-radius: 8px;
+            width: 30%;
+        }
+    </style>
+</head>
+<body>
+<div id="app">
+    <!--    {{mask}}-->
+    <!--    <br/>-->
+    <!--    {{textno}}-->
+    <button class="butt" @click="show()">更换</button>
+    <div class="mask" v-if="mask" @click="close()">
+        <div class="box" @click.stop="">
+            <%for(var i=0;i<data.length;i++){%>
+            <input id="<%=data[i].textno%>" name="textno" value="<%=data[i].textno%>" type="radio" v-model="textno"/>
+            <label for="<%=data[i].textno%>">标题:<%=data[i].title%>小组号:<%=data[i].groupno%></label>
+            <br/>
+            <%}%>
+            <button class="butt" @click="Active()">确定</button>
+        </div>
+    </div>
+</div>
+<div class="chart" style="height: 700px;width: 1000px" id="recognization"></div>
+</body>
+</html>
+<!--选择textno和groupno-->
+<script>
+    var vm = new Vue({
+        el:'#app',
+        data:{
+            textno:1,
+            mask:false
+        },
+        methods:{
+            show(){
+                this.mask=!this.mask;
+            },
+            close(){
+                this.mask=!this.mask;
+            },
+            Active(){
+                var mychart4=echarts.init(document.getElementById("recognization"));
+                $.ajax({
+                    url:"/echarts/echarts6?textno="+this.textno,
+                    method:"POST",
+                    dataType:"json",
+                    success: function(data){
+                        var option = {
+                            title: {
+                                text: '认知维度可视化图表'
+                            },
+                            legend: {
+                                data: ['认知维度可视化图表']
+                            },
+                            radar: [
+                                {
+                                    indicator: [
+                                        { text: '词汇使用', max: 10 },
+                                        { text: '连贯与衔接', max: 10 },
+                                        { text: '语法多样性', max: 10 },
+                                        { text: '任务完成度', max: 10 }
+                                    ],
+                                    center: ['50%', '50%'],
+                                    radius: 240,
+                                    startAngle: 90,
+                                    splitNumber: 4,
+                                    shape: 'circle',
+                                    axisName: {
+                                        formatter: '【{value}】',
+                                        color: 'gray'
+                                    },
+                                    splitArea: {
+                                        areaStyle: {
+                                            color: ['#77EADF', '#26C3BE', '#64AFE9', '#428BD4'],
+                                            shadowColor: 'rgba(0, 0, 0, 0.2)',
+                                            shadowBlur: 10
+                                        }
+                                    },
+                                    axisLine: {
+                                        lineStyle: {
+                                            color: 'rgba(211, 253, 250, 0.8)'
+                                        }
+                                    },
+                                    splitLine: {
+                                        lineStyle: {
+                                            color: 'rgba(211, 253, 250, 0.8)'
+                                        }
+                                    }
+                                }
+                            ],
+                            series: [
+                                {
+                                    type: 'radar',
+                                    emphasis: {
+                                        lineStyle: {
+                                            width: 4
+                                        }
+                                    },
+                                    data: [
+                                        {
+                                            value: data.data,
+                                            areaStyle: {
+                                                color: 'rgba(255, 228, 52, 0.6)'
+                                            }
+                                        }
+                                    ]
+                                }
+                            ]
+                        };
+
+                        mychart4.setOption(option)
+                    }
+                })
+            }
+        }
+    })
+</script>
